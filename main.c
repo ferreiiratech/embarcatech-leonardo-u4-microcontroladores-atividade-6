@@ -4,10 +4,13 @@
 #define PIN_LED_RED 13   // Pino do LED vermelho
 #define PIN_LED_GREEN 11 // Pino do LED verde
 #define PIN_LED_BLUE 12  // Pino do LED azul
-#define TIME_SLEEP 100   // Tempo de espera em milissegundos para o led piscar 5 vezes por segundo, 1000/5 = 200ms e um ciclo leva 100ms*2 = 200ms
+#define TIME_SLEEP 100   // Tempo de espera
 #define PIN_MATRIZ_LED 7 // Pino da matriz de LEDs
 #define PIN_BUTTON_A 5   // Pino do botão A
 #define PIN_BUTTON_B 6   // Pino do botão B
+
+const uint64_t DEBOUNCE_TIME = 200000; // Tempo de debounce em microssegundos
+volatile uint64_t last_interrupt_time = 0; // Tempo da última interrupção do botão A
 
 void init_gpio_settings()
 {
@@ -34,6 +37,17 @@ void init_gpio_settings()
     gpio_pull_up(PIN_BUTTON_B);
 }
 
+void button_A_isr(uint gpio, uint32_t events){
+    uint64_t current_time = time_us_64(); // Obtém o tempo atual em microssegundos
+
+    // configuração do debounce
+    if (current_time - last_interrupt_time < DEBOUNCE_TIME) return; // Ignora bouncing caso o tempo entre interrupções seja menor que 200ms
+    last_interrupt_time = current_time;
+
+    printf("Botão A pressionado!\n");
+
+}
+
 int main()
 {
     // Inicialização da comunicação serial
@@ -42,9 +56,12 @@ int main()
     // Inicialização das configurações dos pinos
     init_gpio_settings();
 
+    gpio_set_irq_enabled_with_callback(PIN_BUTTON_A, GPIO_IRQ_EDGE_FALL, true, &button_A_isr);
+    gpio_set_irq_enabled(PIN_BUTTON_B, GPIO_IRQ_EDGE_FALL, true);
+
     while (true)
     {
-        printf("Hello, world!\n");
-        sleep_ms(TIME_SLEEP);
+        // printf("Hello, world!\n");
+        // sleep_ms(TIME_SLEEP);
     }
 }
