@@ -21,8 +21,8 @@
 #define ENDERECO 0x3C // Endereço do display OLED
 
 volatile uint64_t last_interrupt_time = 0; // Tempo da última interrupção do botão A
-volatile bool led_status_GREEN = false; // Estado do LED comum verde
-volatile bool led_status_BLUE = false; // Estado do LED comum azul
+volatile bool led_status_GREEN = false; // Estado do LED verde
+volatile bool led_status_BLUE = false; // Estado do LED azul
 char character; // Caractere a ser exibido
 ssd1306_t ssd; // Inicializa a estrutura do display
 
@@ -53,19 +53,33 @@ void init_gpio_settings() {
     init_led_matrix(PIN_MATRIZ_LED);
 }
 
-// Função auxiliar para alternar e exibir estado do LED
+// Exibe mensagem no display OLED
+void display_message_on_oled(const char *message) {
+    ssd1306_fill(&ssd, false); // Limpa o display
+    ssd1306_draw_string(&ssd, message, 10, 25); // Exibe a mensagem no OLED
+    ssd1306_send_data(&ssd); // Atualiza o display
+}
+
+// Alterna estado do LED e exibe mensagem no OLED
 void toggle_led(uint pin_led, volatile bool *led_status, const char *button, const char *color) {
     *led_status = !*led_status;
     gpio_put(pin_led, *led_status);
-    printf("Botão %s pressionado: LED %s %s \n", button, color, *led_status ? MSG_IS_ON : MSG_IS_OFF);
+
+    char msg[30];
+    snprintf(msg, sizeof(msg), "LED %s %s", color, *led_status ? MSG_IS_ON : MSG_IS_OFF);
+
+    printf("Botão %s pressionado: %s\n", button, msg);
+    display_message_on_oled(msg);
 }
 
-// Função de interrupção para o botão A
+// Interrupção para os botões
 void button_isr(uint gpio, uint32_t events) {
+    // Configuração que evita debounce
     uint64_t current_time = time_us_64();
-    if (current_time - last_interrupt_time < DEBOUNCE_TIME) return;
+    if (current_time - last_interrupt_time < DEBOUNCE_TIME) return; // Ignora bouncing caso o tempo entre interrupções seja menor que 200ms
     last_interrupt_time = current_time;
 
+    // Verifica qual botão foi pressionado
     if (gpio == PIN_BUTTON_A) {
         toggle_led(PIN_LED_GREEN, &led_status_GREEN, "A", "VERDE");
     }
@@ -74,6 +88,7 @@ void button_isr(uint gpio, uint32_t events) {
     }
 }
 
+// Verifica se o caractere é um número
 bool is_valid_number(char character) {
     return character >= '0' && character <= '9';
 }
@@ -90,44 +105,37 @@ void init_display_settings() {
     ssd1306_send_data(&ssd);
 }
 
+// Exibe caractere no display OLED
 void display_character_on_oled(char character) {
-    char text[2] = {character, '\0'}; // Criamos uma string com o caractere
-
-    ssd1306_fill(&ssd, false);  // Limpa o display
-    ssd1306_draw_string(&ssd, text, 50, 25); // Desenha o caractere na posição central
-    ssd1306_send_data(&ssd);   // Atualiza o display
+    char text[2] = {character, '\0'}; // Cria string com o caractere
+    display_message_on_oled(text);
 }
 
 void read_character() {
     if (stdio_usb_connected() && scanf("%c", &character) == 1) {
         printf("Caractere recebido: %c\n", character);
 
-        // Se for um número, exibe na matriz de LED
         if (is_valid_number(character)) {
             int number = character - '0';
             display_number(number);
         }
-        
-        // Exibir no display OLED
+
         display_character_on_oled(character);
     }
 }
 
 int main() {
-    // Inicialização da comunicação serial USB CDC 
+    // Inicialização do GPIO e configuração do display OLED
     stdio_init_all();
-
-    // Inicialização do display
     init_display_settings();
-
-    // Inicialização das configurações dos pinos
     init_gpio_settings();
 
-    // Configuração de interrupção para os botões
+    // Configuração das interrupções para os botões
     gpio_set_irq_enabled_with_callback(PIN_BUTTON_A, GPIO_IRQ_EDGE_FALL, true, &button_isr);
     gpio_set_irq_enabled(PIN_BUTTON_B, GPIO_IRQ_EDGE_FALL, true);
 
     while (true) {
+        // Leitura do caractere do teclado
         read_character();
         sleep_ms(TIME_SLEEP);
     }
