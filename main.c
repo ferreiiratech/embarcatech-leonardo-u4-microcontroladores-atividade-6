@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
+#include "src/animation_matriz_led.h"
+#include "src\matriz_led_control.h"
 
 #define PIN_LED_RED 13   // Pino do LED vermelho
 #define PIN_LED_GREEN 11 // Pino do LED verde
@@ -40,6 +42,9 @@ void init_gpio_settings()
     gpio_init(PIN_BUTTON_B);
     gpio_set_dir(PIN_BUTTON_B, GPIO_IN);
     gpio_pull_up(PIN_BUTTON_B);
+
+    // Inicialização da matriz de LEDs
+    init_led_matrix(PIN_MATRIZ_LED);
 }
 
 // Função auxiliar para alternar e exibir estado do LED
@@ -62,7 +67,6 @@ void button_A_isr(uint gpio, uint32_t events){
     // Lógica para o botão A
     if (gpio == PIN_BUTTON_A) {
         toggle_led(PIN_LED_GREEN, &led_status_GREEN, "A", "VERDE");
-        printf("Caractere recebidoo: %c\n", character);
     }
 
     // Lógica para o botão B
@@ -71,9 +75,19 @@ void button_A_isr(uint gpio, uint32_t events){
     }
 }
 
+bool is_valid_number(char character){
+    return character >= '0' && character <= '9';
+}
+
 void read_character() {
     if(stdio_usb_connected() && scanf("%c", &character) == 1) {
         printf("Caractere recebido: %c\n", character);
+
+        // Verifica se é um número e exibe o número na matriz de led
+        if(is_valid_number(character)){
+            int number = character - '0';
+            display_number(number);
+        }
     }
 }
 
