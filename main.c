@@ -14,6 +14,9 @@ volatile uint64_t last_interrupt_time = 0; // Tempo da última interrupção do 
 volatile bool led_status_GREEN = false; // Estado do LED comum verde
 volatile bool led_status_BLUE = false; // Estado do LED comum azul
 
+char *msg_is_on = "ACESO";
+char *msg_is_off = "APAGADO";
+
 void init_gpio_settings()
 {
     // Inicialização do pino vermelho
@@ -39,6 +42,16 @@ void init_gpio_settings()
     gpio_pull_up(PIN_BUTTON_B);
 }
 
+// Função auxiliar para alternar e exibir estado do LED
+void toggle_led(uint pin_led, volatile bool *led_status, const char *button, const char *color){
+    // Inverte o estado do LED comum
+    *led_status = !*led_status;
+    gpio_put(pin_led, *led_status);
+
+    // Exibe o estado do LED na saída padrão
+    printf("Botão %s pressionado: LED %s %s \n", button, color, *led_status ? msg_is_on : msg_is_off);
+}
+
 void button_A_isr(uint gpio, uint32_t events){
     uint64_t current_time = time_us_64(); // Obtém o tempo atual em microssegundos
 
@@ -48,18 +61,12 @@ void button_A_isr(uint gpio, uint32_t events){
 
     // Lógica para o botão A
     if (gpio == PIN_BUTTON_A) {
-        // Inverte o estado do LED comum verde
-        led_status_GREEN = !led_status_GREEN;
-        gpio_put(PIN_LED_GREEN, led_status_GREEN);
-        printf("Botão A pressionado!\n");
+        toggle_led(PIN_LED_GREEN, &led_status_GREEN, "A", "VERDE");
     }
 
     // Lógica para o botão B
     if (gpio == PIN_BUTTON_B) {
-        // Inverte o estado do LED comum azul
-        led_status_BLUE = !led_status_BLUE;
-        gpio_put(PIN_LED_BLUE, led_status_BLUE);
-        printf("Botão B pressionado!\n");
+        toggle_led(PIN_LED_BLUE, &led_status_BLUE, "B", "AZUL");
     }
 
 }
