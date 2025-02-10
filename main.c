@@ -11,6 +11,8 @@
 
 const uint64_t DEBOUNCE_TIME = 200000; // Tempo de debounce em microssegundos
 volatile uint64_t last_interrupt_time = 0; // Tempo da última interrupção do botão A
+volatile bool led_status_GREEN = false; // Estado do LED comum verde
+volatile bool led_status_BLUE = false; // Estado do LED comum azul
 
 void init_gpio_settings()
 {
@@ -44,7 +46,21 @@ void button_A_isr(uint gpio, uint32_t events){
     if (current_time - last_interrupt_time < DEBOUNCE_TIME) return; // Ignora bouncing caso o tempo entre interrupções seja menor que 200ms
     last_interrupt_time = current_time;
 
-    printf("Botão A pressionado!\n");
+    // Lógica para o botão A
+    if (gpio == PIN_BUTTON_A) {
+        // Inverte o estado do LED comum verde
+        led_status_GREEN = !led_status_GREEN;
+        gpio_put(PIN_LED_GREEN, led_status_GREEN);
+        printf("Botão A pressionado!\n");
+    }
+
+    // Lógica para o botão B
+    if (gpio == PIN_BUTTON_B) {
+        // Inverte o estado do LED comum azul
+        led_status_BLUE = !led_status_BLUE;
+        gpio_put(PIN_LED_BLUE, led_status_BLUE);
+        printf("Botão B pressionado!\n");
+    }
 
 }
 
