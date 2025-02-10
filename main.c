@@ -71,31 +71,16 @@ void button_A_isr(uint gpio, uint32_t events){
     }
 }
 
-// **Função de interrupção da UART**
-void on_uart_rx() {
-    while (uart_is_readable(uart0)) { // Verifica se há caracteres na UART
-        character = uart_getc(uart0); // Lê o caractere recebido
+void read_character() {
+    if(stdio_usb_connected() && scanf("%c", &character) == 1) {
         printf("Caractere recebido: %c\n", character);
     }
 }
 
-// Inicializa a UART com interrupção
-void init_uart() {
-    uart_init(uart0, 115200); // Configura UART0 a 115200 baud
-    gpio_set_function(0, GPIO_FUNC_UART); // Pino 0 como UART TX
-    gpio_set_function(1, GPIO_FUNC_UART); // Pino 1 como UART RX
-
-    uart_set_irq_enables(uart0, true, false); // Habilita interrupção de RX
-    irq_set_exclusive_handler(UART0_IRQ, on_uart_rx); // Define handler da interrupção
-    irq_set_enabled(UART0_IRQ, true); // Habilita IRQ da UART
-}
-
-int main()
-{
-    // Inicialização da comunicação serial
+int main() {
+    // Inicialização da comunicação serial USB CDC
     stdio_init_all();
-    init_uart();
-
+    
     // Inicialização das configurações dos pinos
     init_gpio_settings();
 
@@ -104,8 +89,7 @@ int main()
 
     while (true)
     {
-        if(scanf("%c", &character) == 1){
-            printf("Caractere recebido: %c\n", character);
-        }
+        read_character();
+        sleep_ms(TIME_SLEEP);
     }
 }
