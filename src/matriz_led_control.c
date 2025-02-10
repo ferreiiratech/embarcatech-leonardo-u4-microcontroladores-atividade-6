@@ -1,4 +1,4 @@
-#include "led_control.h"
+#include "matriz_led_control.h"
 #include "ws2818b.pio.h"
 
 npLED_t leds[TOTAL_LEDS]; // Array que representa os LEDs

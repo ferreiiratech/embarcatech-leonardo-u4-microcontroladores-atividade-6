@@ -1,5 +1,5 @@
-#ifndef LED_CONTROL_H
-#define LED_CONTROL_H
+#ifndef MATRIZ_LED_CONTROL_H
+#define MATRIZ_LED_CONTROL_H
 
 #include <stdint.h>
 #include "pico/stdlib.h"
