@@ -8,14 +8,13 @@
 #define PIN_MATRIZ_LED 7 // Pino da matriz de LEDs
 #define PIN_BUTTON_A 5   // Pino do botão A
 #define PIN_BUTTON_B 6   // Pino do botão B
+#define DEBOUNCE_TIME 200000 // Tempo de debounce em microssegundos
+#define MSG_IS_ON "ACESO" 
+#define MSG_IS_OFF "APAGADO"
 
-const uint64_t DEBOUNCE_TIME = 200000; // Tempo de debounce em microssegundos
 volatile uint64_t last_interrupt_time = 0; // Tempo da última interrupção do botão A
 volatile bool led_status_GREEN = false; // Estado do LED comum verde
 volatile bool led_status_BLUE = false; // Estado do LED comum azul
-
-char *msg_is_on = "ACESO";
-char *msg_is_off = "APAGADO";
 
 void init_gpio_settings()
 {
@@ -49,7 +48,7 @@ void toggle_led(uint pin_led, volatile bool *led_status, const char *button, con
     gpio_put(pin_led, *led_status);
 
     // Exibe o estado do LED na saída padrão
-    printf("Botão %s pressionado: LED %s %s \n", button, color, *led_status ? msg_is_on : msg_is_off);
+    printf("Botão %s pressionado: LED %s %s \n", button, color, *led_status ? MSG_IS_ON : MSG_IS_OFF);
 }
 
 void button_A_isr(uint gpio, uint32_t events){
