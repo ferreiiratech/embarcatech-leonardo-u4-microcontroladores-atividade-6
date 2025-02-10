@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "src/animation_matriz_led.h"
-#include "src\matriz_led_control.h"
+#include "src/matriz_led_control.h"
 
 #define PIN_LED_RED 13   // Pino do LED vermelho
 #define PIN_LED_GREEN 11 // Pino do LED verde

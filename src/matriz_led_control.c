@@ -1,5 +1,5 @@
 #include "matriz_led_control.h"
-#include "ws2818b.pio.h"
+#include "src/lib/ws2818b.pio.h"
 
 npLED_t leds[TOTAL_LEDS]; // Array que representa os LEDs
 PIO np_pio; // Objeto representando o periférico PIO usado para controlar os LEDs
